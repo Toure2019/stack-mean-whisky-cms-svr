@@ -1,0 +1,21 @@
+{
+  "name": "whisky-cms-ng-srv",
+  "version": "1.0.0",
+  "description": "CMD Based on the MEAN STACK",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "npm run lint & node app.js",
+    "dev": "npm run lint & nodemon app.js",
+    "lint": "./node_modules/.bin/eslint **/*.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "eslint": "^6.8.0"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.17.1"
+  }
+}
