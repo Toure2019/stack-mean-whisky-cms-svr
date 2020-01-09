@@ -5,6 +5,7 @@ const mongoose = require('mongoose');
 const multer   = require('multer');
 const crypto   = require('crypto');
 const path     = require('path');
+const resize   = require('../../utils/resize');
 
 router.get('/ping', (req, res) => {
     res.status(200).json({ msg: 'Pong', date: new Date() });
@@ -18,33 +19,26 @@ router.get('/blog-posts', (req, res) => {
         .catch(err => res.status(500).json({ message: 'blog posts not found', error: err }));
 });
 
-//file upload configuration
-const storage = multer.diskStorage({
-    destination: './uploads/',
-    filename: function(req, file, callback) {
-        crypto.pseudoRandomBytes(16, function(err, raw) {
-            if (err) return callback(err);
-            // callback(null, raw.toString('hex') + path.extname(file.originalname));  
-            lastUploadedImageName = raw.toString('hex') + path.extname(file.originalname);
-            console.log('lastUploadedImageName', lastUploadedImageName);
-            callback(null, lastUploadedImageName);
-        });
-    }
-});
-const upload = multer({ storage: storage });
-
-// file upload 
-router.post('/blog-posts/images', upload.single('image'), (req, res) => {
-    if (!req.file.originalname.match(/\.(jpg|jpeg|png|gif)$/)) {
-        return res.status(400).json({ message: 'only images files please !' });
-    }
-    res.status(201).json({ fileName: req.file.filename, file: req.file });
+router.get('/blog-posts/:id', (req, res) => {
+    const id = req.params.id;
+    BlogPost.findById(id)
+        .then(blogPost => res.status(200).json(blogPost))
+        .catch(err => res.status(500).json({ message: `blog post with id ${id} not found`, error: err }));
 });
 
 router.post('/blog-posts', (req, res) => {
     console.log('req.body', req.body);
     // const blogPost = new BlogPost(req.body);
-     const blogPost = new BlogPost({...req.body, image: lastUploadedImageName});
+    // const blogPost = new BlogPost({...req.body, image: lastUploadedImageName});
+    const smallImagePath = `./uploads/${lastUploadedImageName}`;
+    const outputName = `./uploads/small-${lastUploadedImageName}`;
+    resize({ path: smallImagePath, width: 200, height: 200, outputName: outputName })
+        .then(data => {
+            console.log('OK Resize', data.size);
+        })
+        .catch(err => console.error(err));
+
+    const blogPost = new BlogPost({...req.body, image: lastUploadedImageName, smallImage: `small-${lastUploadedImageName}`});
 
     blogPost.save((err, blogPost) => {
         if (err) {
@@ -52,15 +46,6 @@ router.post('/blog-posts', (req, res) => {
         }
         res.status(201).json(blogPost);
     });
-});
-
-let lastUploadedImageName = '';
-
-router.get('/blog-posts/:id', (req, res) => {
-    const id = req.params.id;
-    BlogPost.findById(id)
-        .then(blogPost => res.status(200).json(blogPost))
-        .catch(err => res.status(500).json({ message: `blog post with id ${id} not found`, error: err }));
 });
 
 router.delete('/blog-posts/:id', (req, res) => {
@@ -90,6 +75,31 @@ router.delete('/blog-posts', (req, res) => {
         }
         res.status(202).json(result);
     });  // { nb: 2, ok: true }
+});
+
+
+let lastUploadedImageName = '';
+//file upload configuration
+const storage = multer.diskStorage({
+    destination: './uploads/',
+    filename: function(req, file, callback) {
+        crypto.pseudoRandomBytes(16, function(err, raw) {
+            if (err) return callback(err);
+            // callback(null, raw.toString('hex') + path.extname(file.originalname));  
+            lastUploadedImageName = raw.toString('hex') + path.extname(file.originalname);
+            console.log('lastUploadedImageName', lastUploadedImageName);
+            callback(null, lastUploadedImageName);
+        });
+    }
+});
+const upload = multer({ storage: storage });
+
+// file upload route
+router.post('/blog-posts/images', upload.single('image'), (req, res) => {
+    if (!req.file.originalname.match(/\.(jpg|jpeg|png|gif)$/)) {
+        return res.status(400).json({ message: 'only images files please !' });
+    }
+    res.status(201).json({ fileName: req.file.filename, file: req.file });
 });
 
 router.put('/blog-posts/:id', upload.single('image'), (req, res) => {
