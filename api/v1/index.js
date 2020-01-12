@@ -50,6 +50,13 @@ router.post('/blog-posts', (req, res) => {
 });
 
 router.delete('/blog-posts/:id', (req, res) => {
+    console.log('req.isAuthenticated()', req.isAuthenticated());
+    req.logOut();   // TODO delete this line
+    console.log('req.isAuthenticated()', req.isAuthenticated());
+
+    if (!req.isAuthenticated()) {
+        return res.status(401).json({ result: 'KO', message: 'not authorized to delete a blog-post' });
+    }
     const id = req.params.id;
     BlogPost.findByIdAndDelete(id, (err, blogPost) => {
         if (err) {
@@ -60,6 +67,13 @@ router.delete('/blog-posts/:id', (req, res) => {
 });
 
 router.delete('/blog-posts', (req, res) => {
+    console.log('req.isAuthenticated()', req.isAuthenticated());
+    req.logOut();   // TODO delete this line
+    console.log('req.isAuthenticated()', req.isAuthenticated());
+
+    if (!req.isAuthenticated()) {
+        return res.status(401).json({ result: 'KO', message: 'not authorized to delete a blog-post' });
+    }
     const ids = req.query.ids;
     console.log('Query ids', ids);
     const allIds = ids.split(',').map(id => {
