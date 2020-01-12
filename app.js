@@ -12,7 +12,8 @@ app.set('port', process.env.PORT || 3000);
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
-app.use(cors());    // Implémentation du CORS: npm install cors (midleware)
+// app.use(cors());    // Implémentation du CORS: npm install cors (midleware) || ne pase plus à cause de HttpInterceptor
+app.use(cors({ credentials: true, origin: 'http://localhost:4200' }));  // on précise maintenant le client (Error: Access-Control-Allow-Origin)
 
 // passport
 const passport      = require('passport');
@@ -25,7 +26,8 @@ app.use(cookieParser());
 app.use(session({
     secret: 'my super secret',
     resave: true,
-    saveUnitialized: true
+    saveUnitialized: true,
+    name: 'whisky-cookie'
 }));
 app.use(passport.initialize());
 app.use(passport.session());
