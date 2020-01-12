@@ -32,4 +32,9 @@ router.get('/failure', (req, res) => {
 	res.status(401).json({ message: 'not logged in' });
 });
 
+router.get('/logout', (req, res) => {
+	req.logOut();
+	res.status(200).json({ message: 'logged out successfully' });
+});
+
 module.exports = router;
